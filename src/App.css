@@ -6,3 +6,8 @@
 .card {
   flex: 0 0 auto;
 }
+
+.hover:hover {
+  transition: all 0.2s ease-in-out;
+  border: 2px solid red;
+}

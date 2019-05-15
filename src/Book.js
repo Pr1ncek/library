@@ -1,10 +1,26 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
-import Navbar from './Navbar';
+
+const scroll = {
+  position: 'absolute',
+  padding: '5px',
+  background: 'white',
+  width: '75%',
+  height: '450px',
+  overflowY: 'scroll',
+  marginTop: '45px'
+};
+
+const cardStyle = {
+  border: '1px solid grey',
+  borderRadius: '1px',
+  padding: '2%'
+};
 
 export default class Book extends Component {
   state = {
-    book: {}
+    book: {},
+    savedToCart: false
   };
 
   componentDidMount() {
@@ -15,6 +31,18 @@ export default class Book extends Component {
       })
       .catch(err => console.error(err));
   }
+
+  addToCart = () => {
+    Axios.post('/api/useractions/cart', { isbn: this.state.book.isbn })
+      .then(res => {
+        console.log(res.data[0]);
+        this.setState({ savedToCart: true }, () => {
+          setTimeout(() => this.setState({ savedToCart: false }), 1500);
+        });
+      })
+      .catch(err => console.error(err));
+  };
+
   render() {
     const { book } = this.state;
     return (
@@ -28,6 +56,7 @@ export default class Book extends Component {
               </button>
             </div>
           </div>
+
           <div className="col-8">
             <h2>{book.title}</h2>
             <p className="lead mt-4">
@@ -52,16 +81,53 @@ export default class Book extends Component {
 
             <div className="row">
               <div className="col">
-                <button className="btn-danger btn w-100">Add to Cart</button>
+                <button className="btn-danger btn w-100" onClick={this.addToCart}>
+                  {this.state.savedToCart ? 'Saved to Cart!' : 'Add to Cart'}
+                </button>
               </div>
               <div className="col">
                 <button
                   className="btn-success btn w-100"
-                  onClick={() => this.props.history.push('/book/checkout/:isbn')}
+                  onClick={() => this.props.history.push(`/book/checkout/${book.isbn}`)}
                 >
                   Checkout
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="row mt-5 mb-4">
+          <h2 className="ml-2 mb-4 mt-3">Reviews</h2>
+          <div className="row ml-2 mb-5">
+            <div style={cardStyle} className="mb-1">
+              Lorem, ipsum dolor sit amet consectetur adipisicing elit. Incidunt in exercitationem
+              necessitatibus eligendi, illo ex. Sint distinctio deleniti est, temporibus voluptatem
+              qui eveniet adipisci, laborum sequi quaerat maiores iste impedit! Lorem ipsum dolor
+              sit, amet consectetur adipisicing elit. Libero sequi dolore impedit, deleniti
+              molestiae at cumque ipsam sed sapiente odio dolorem quidem eligendi minima tenetur!
+              Assumenda vel eius pariatur laboriosam.
+              <footer class="blockquote-footer mt-3 align-right">Prince Chaudhary</footer>
+            </div>
+            <hr />
+            <div style={cardStyle} className="mb-5">
+              Lorem, ipsum dolor sit amet consectetur adipisicing elit. Incidunt in exercitationem
+              necessitatibus eligendi, illo ex. Sint distinctio deleniti est, temporibus voluptatem
+              qui eveniet adipisci, laborum sequi quaerat maiores iste impedit! Lorem ipsum dolor
+              sit, amet consectetur adipisicing elit. Libero sequi dolore impedit, deleniti
+              molestiae at cumque ipsam sed sapiente odio dolorem quidem eligendi minima tenetur!
+              Assumenda vel eius pariatur laboriosam.
+              <footer class="blockquote-footer mt-3 align-righ ">Alan Turing</footer>
+            </div>
+
+            <div style={cardStyle}>
+              Lorem, ipsum dolor sit amet consectetur adipisicing elit. Incidunt in exercitationem
+              necessitatibus eligendi, illo ex. Sint distinctio deleniti est, temporibus voluptatem
+              qui eveniet adipisci, laborum sequi quaerat maiores iste impedit! Lorem ipsum dolor
+              sit, amet consectetur adipisicing elit. Libero sequi dolore impedit, deleniti
+              molestiae at cumque ipsam sed sapiente odio dolorem quidem eligendi minima tenetur!
+              Assumenda vel eius pariatur laboriosam.
+              <footer class="blockquote-footer mt-3 align-right">Chris Tibs</footer>
             </div>
           </div>
         </div>

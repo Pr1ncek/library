@@ -290,7 +290,8 @@ app.post(
   '/api/useractions/borrow',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
-    const { userId, isbn } = req.body;
+    const { isbn } = req.body;
+    const userId = req.user.user_id;
     var credits = 0;
     var currDate = new Date();
     var dueDate = new Date();
@@ -351,7 +352,8 @@ app.post(
   '/api/useractions/return',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
-    const { userId, isbn } = req.body;
+    const { isbn } = req.body;
+    const userId = req.user.user_id;
     // remove book from renters table
     // update user credits in user table
     var credits = 0;
@@ -359,7 +361,7 @@ app.post(
       mysqlConnection.query(getUserByID, userId, (err, rows, fields) => {
         if (!err) {
           credits = rows[0].rental_credits;
-          if (credits > 0) {
+          if (credits >= 0) {
             credits = credits + 1;
             mysqlConnection.query(removeRental, [userId, isbn], (err, rows, fields) => {
               if (!err) {
@@ -421,6 +423,7 @@ app.get('/api/userinfo/credits', passport.authenticate('jwt', { session: false }
   try {
     mysqlConnection.query(getUserByID, user_id, (err, rows, fields) => {
       if (!err) {
+        console.log(rows);
         res.status(200).json(rows);
       } else {
         console.log(err);
@@ -436,7 +439,8 @@ const addToCart = 'INSERT INTO cart(user_id, ISBN) VALUES (?, ?)';
 const getCartByUser = 'SELECT * FROM cart WHERE user_id = ?';
 
 app.post('/api/useractions/cart', passport.authenticate('jwt', { session: false }), (req, res) => {
-  const { userId, isbn } = req.body;
+  const { isbn } = req.body;
+  const userId = req.user.user_id;
   // save record to cart table
   // send back the new cart
   try {
@@ -466,7 +470,8 @@ app.post(
   '/api/useractions/cart/remove',
   passport.authenticate('jwt', { session: false }),
   (req, res) => {
-    const { userId, isbn } = req.body;
+    const { isbn } = req.body;
+    const userId = req.user.user_id;
     // remove book from cart table
     // send back the new cart
     try {

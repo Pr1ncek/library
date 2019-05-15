@@ -11,7 +11,7 @@ import Register from './Register';
 import Book from './Book';
 import Checkout from './Checkout';
 import Cart from './Cart';
-import Account from './Checkout';
+import Account from './Account';
 import Navbar from './Navbar';
 
 const checkAuthenticationStatus = () => {
@@ -34,13 +34,13 @@ const checkAuthenticationStatus = () => {
 class Root extends React.Component {
   state = {
     currentUser: {},
-    isAuthenticated: false,
-    cart: [671746723, 618346252, 374521727]
+    isAuthenticated: false
   };
 
-  componentDidMount() {
+  componentWillMount() {
     const currentUser = checkAuthenticationStatus();
     if (currentUser) this.setState({ currentUser, isAuthenticated: true });
+    console.log(currentUser);
   }
 
   setCurrentUser = user => this.setState({ currentUser: user, isAuthenticated: true });
@@ -59,6 +59,15 @@ class Root extends React.Component {
 
         <Switch>
           <Route path="/" component={App} exact />
+
+          <Route
+            path="/account"
+            render={props => (
+              <Account {...props} currentUser={currentUser} isAuthenticated={isAuthenticated} />
+            )}
+            exact
+          />
+
           <Route
             path="/login"
             render={props => (
@@ -70,19 +79,18 @@ class Root extends React.Component {
             )}
             exact
           />
+
           <Route
             path="/register"
             render={props => <Register {...props} isAuthenticated={isAuthenticated} />}
             exact
           />
+
           <Route path="/book/:isbn" component={Book} exact />
+
           <Route path="/book/checkout/:isbn" component={Checkout} exact />
-          <Route
-            path="/cart"
-            render={routeProps => <Cart cart={this.state.cart} {...routeProps} />}
-            exact
-          />
-          <Route path="/account" component={Account} exact />
+
+          <Route path="/cart" render={routeProps => <Cart {...routeProps} />} exact />
         </Switch>
       </BrowserRouter>
     );

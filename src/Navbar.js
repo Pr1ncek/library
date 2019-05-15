@@ -23,11 +23,12 @@ export default class Navbar extends Component {
         >
           {this.props.isAuthenticated && this.props.currentUser.firstName}
         </Link>
+
         <Link to="/cart" className="btn btn-secondary mr-2  pl-4 pr-4">
           View Cart
         </Link>
 
-        <Link to="/register" className="btn btn-danger mr-3 pl-4 pr-4" onClick={this.props.logout}>
+        <Link to="/login" className="btn btn-danger mr-3 pl-4 pr-4" onClick={this.props.logout}>
           Logout
         </Link>
       </div>
@@ -36,7 +37,7 @@ export default class Navbar extends Component {
     return (
       <nav className="navbar navbar-dark bg-dark container">
         <Link to="/">
-          <h1 className="navbar-brand">📚 CSP Library</h1>
+          <h1 className="navbar-brand">PCS Library</h1>
         </Link>
         {this.props.isAuthenticated ? authLinks : guestLinks}
       </nav>
