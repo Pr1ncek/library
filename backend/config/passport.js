@@ -7,14 +7,20 @@ const options = {};
 options.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 options.secretOrKey = keys.JWT_SECRET;
 
-module.exports = passport => {
+const searchUserByID = 'SELECT * FROM user WHERE user_id = ?';
+
+module.exports = (passport, mysqlConnection) => {
   passport.use(
     new JwtStrategy(options, async (payload, done) => {
       try {
-        // const user = await User.findById(payload.id);
-        // if (!user) return done(null, false);
-        const user = {};
-        return done(null, user);
+        mysqlConnection.query(searchUserByID, payload.id, async function(err, res, fields) {
+          const user = res[0];
+          if (err) {
+            return console.error(err.message);
+          }
+          if (!user) return done(null, false);
+          return done(null, user);
+        });
       } catch (error) {
         console.error(error);
       }

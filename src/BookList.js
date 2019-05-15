@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 
-export default class BookList extends Component {
+class BookList extends Component {
   render() {
     return (
       <div className="scrolling-wrapper-flexbox mb-5">
@@ -14,7 +15,12 @@ export default class BookList extends Component {
               >
                 {book.title}
               </p>
-              <button className="btn btn-sm btn-danger pl-5 pr-5 ml-4">View</button>
+              <button
+                onClick={() => this.props.history.push(`/book/${book.isbn}`)}
+                className="btn btn-sm btn-danger pl-5 pr-5 ml-4"
+              >
+                View
+              </button>
             </div>
           </div>
         ))}
@@ -22,3 +28,5 @@ export default class BookList extends Component {
     );
   }
 }
+
+export default withRouter(BookList);

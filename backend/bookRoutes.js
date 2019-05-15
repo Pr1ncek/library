@@ -1,10 +1,24 @@
 // const express = require('express');
 // const router = express.Router();
+// const mysqlConnection = require('./index');
 
 // const c1 =
 //   'SELECT title FROM book INNER JOIN genre ON book.genre_id=genre.genre_id GROUP BY genre.genre_id';
 // const c2 = 'SELECT * from genre';
 // const c3 = 'SELECT * from book, genre WHERE book.genre_id=genre.genre_id AND name ';
+
+// // Get info about individual book
+// router.get('/books/individual/:isbn', (req, res) => {
+//   const singleBookInfo = 'SELECT * FROM book WHERE book.isbn=' + req.params.isbn;
+//   mysqlConnection.query(singleBookInfo, (err, rows, fields) => {
+//     if (!err) {
+//       res.status(200).json(rows);
+//     } else {
+//       console.log(err);
+//       res.status(400).json(err);
+//     }
+//   });
+// });
 
 // //Grab top 25 books by category
 // const top25Mystery =
@@ -42,7 +56,8 @@
 //   'WHERE average_rating>4.2 LIMIT 25';
 
 // // Get top 25 Mystery books from DB
-// router.get('/books/top25/mystery', (req, res) => {
+// router.get('/top25/mystery', (req, res) => {
+//   console.log('hello');
 //   mysqlConnection.query(top25Mystery, (err, rows, fields) => {
 //     if (!err) {
 //       console.log(rows);

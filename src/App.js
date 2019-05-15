@@ -107,7 +107,6 @@ class App extends React.Component {
     } = this.state;
     return (
       <div className="container">
-        <Navbar />
         <h2 className="mt-3">Top 25</h2>
         <BookList books={other} />
         <h2 className="mt-4">Mystery</h2>

@@ -1,12 +1,15 @@
 const mysql = require('mysql');
 const express = require('express');
 var app = express();
-const bodyparser = require('body-parser');
+const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const keys = require('./config/keys');
 
-app.use(bodyparser.json());
+// Middleware
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(passport.initialize());
 
 var mysqlConnection = mysql.createConnection({
   host: 'cs157b.cta2gevu5nsx.us-east-2.rds.amazonaws.com',
@@ -20,6 +23,10 @@ mysqlConnection.connect(err => {
   else console.log('DB connection failed \n ERROR: ' + JSON.stringify(err, undefined, 2));
 });
 
+// Passport Configuration
+const configurePassport = require('./config/passport');
+configurePassport(passport, mysqlConnection);
+
 app.listen(5000, () => console.log('Express server is running...'));
 
 const c1 =
@@ -27,6 +34,20 @@ const c1 =
 const c2 = 'SELECT * from genre';
 const c3 = 'SELECT * from book, genre WHERE book.genre_id=genre.genre_id AND name ';
 
+// Get info about individual book
+app.get('/books/individual/:isbn', (req, res) => {
+  const singleBookInfo = 'SELECT * FROM book WHERE book.isbn=' + req.params.isbn;
+  mysqlConnection.query(singleBookInfo, (err, rows, fields) => {
+    if (!err) {
+      res.status(200).json(rows);
+    } else {
+      console.log(err);
+      res.status(400).json(err);
+    }
+  });
+});
+
+// ------------------------------------------ BOOK ROUTES ----------------------------------------------------------
 //Grab top 25 books by category
 const top25Mystery =
   'SELECT isbn, author, original_publication_year, title, image_url, average_rating from book, genre ' +
@@ -66,7 +87,6 @@ const top25Other =
 app.get('/books/top25/mystery', (req, res) => {
   mysqlConnection.query(top25Mystery, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -79,7 +99,6 @@ app.get('/books/top25/mystery', (req, res) => {
 app.get('/books/top25/fantasy', (req, res) => {
   mysqlConnection.query(top25Fantasy, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -92,7 +111,6 @@ app.get('/books/top25/fantasy', (req, res) => {
 app.get('/books/top25/romance', (req, res) => {
   mysqlConnection.query(top25Romance, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -105,7 +123,6 @@ app.get('/books/top25/romance', (req, res) => {
 app.get('/books/top25/actionandadventure', (req, res) => {
   mysqlConnection.query(top25ActionandAdv, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -118,7 +135,6 @@ app.get('/books/top25/actionandadventure', (req, res) => {
 app.get('/books/top25/horror', (req, res) => {
   mysqlConnection.query(top25Horror, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -131,7 +147,6 @@ app.get('/books/top25/horror', (req, res) => {
 app.get('/books/top25/sci-fi', (req, res) => {
   mysqlConnection.query(top25SciFi, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -144,7 +159,6 @@ app.get('/books/top25/sci-fi', (req, res) => {
 app.get('/books/top25/short-story', (req, res) => {
   mysqlConnection.query(top25ShortStory, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -157,7 +171,6 @@ app.get('/books/top25/short-story', (req, res) => {
 app.get('/books/top25/biography', (req, res) => {
   mysqlConnection.query(top25Biography, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -170,7 +183,6 @@ app.get('/books/top25/biography', (req, res) => {
 app.get('/books/top25/poetry', (req, res) => {
   mysqlConnection.query(top25Poetry, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -183,7 +195,6 @@ app.get('/books/top25/poetry', (req, res) => {
 app.get('/books/top25/self-help', (req, res) => {
   mysqlConnection.query(top25Self_help, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -196,7 +207,6 @@ app.get('/books/top25/self-help', (req, res) => {
 app.get('/books/top25/other', (req, res) => {
   mysqlConnection.query(top25Other, (err, rows, fields) => {
     if (!err) {
-      console.log(rows);
       res.status(200).json(rows);
     } else {
       console.log(err);
@@ -226,47 +236,275 @@ const removeFromWishList = 'DELETE FROM wish_list WHERE customer_id = ? and book
 const getLoginInfo = 'SELECT * FROM login WHERE email = ?';
 
 //Create Account Page
-const addAddress = 'INSERT INTO address(street, city, zip_code, state) VALUES (?, ?, ?, ?)';
-const addCustomer =
-  'INSERT INTO customer(first_name, last_name, phone_number, address_id) ' + 'VALUES (?, ?, ?, ?)';
-const addLoginInfo = 'INSERT INTO login(email, password, customer_id) VALUES (?, ?, ?)';
+const createUser = 'INSERT INTO user(first_name, last_name, email, login_pw) VALUES (?, ?, ?, ?)';
 
-app.post('/register', async (req, res) => {
-  //const { errors, isValid } = validateRegistrationInputs(req.body);
-  // if (!isValid) return res.status(400).json(errors);
-  const { firstName, lastName, email, password, address, city, zipcode, state } = req.body;
-  try {
-    //made column, called rental_credits default 5, doesnt seem like a real feature
-    //return res.json({ Msg: 'Success', savedUser });
-  } catch (error) {
-    res.status(400).json(error);
-  }
+app.post('/api/auth/register', (req, res) => {
+  const { firstName, lastName, email, password } = req.body;
+  mysqlConnection.query(createUser, [firstName, lastName, email, password], (err, rows, fields) => {
+    if (!err) {
+      console.log(rows);
+      res.status(200).json(rows);
+    } else {
+      console.log(err);
+      res.status(400).json(err);
+    }
+  });
 });
+
+const getUserByEmail = 'SELECT * FROM user WHERE email = ?';
 
 // @route   POST api/auth/login
 // @desc    user login / generate JWT
 // @access  Public
-app.post('/login', async (req, res) => {
-  // const { errors, isValid } = validateLoginInputs(req.body);
-  // if (!isValid) return res.status(400).json(errors);
+app.post('/api/auth/login', async (req, response) => {
   const { email, password } = req.body;
   try {
-    // find user in db
     // if email password match, then create below payload
-    const payload = {
-      // id: user.id,
-      // firstName: user.firstName,
-      // lastName: user.lastName,
-      // avatar: user.avatar,
-      // email: user.email
-    };
-    const token = await jwt.sign(payload, keys.JWT_SECRET, { expiresIn: '24h' });
-    return res.json({ Msg: 'Success', token: `Bearer ${token}` });
+    mysqlConnection.query(getUserByEmail, email, async function(err, res, fields) {
+      if (password == res[0].login_pw) {
+        const payload = {
+          id: res[0].user_id,
+          firstName: res[0].first_name,
+          lastName: res[0].last_name,
+          email: res[0].email
+        };
+        const token = await jwt.sign(payload, keys.JWT_SECRET, { expiresIn: '24h' });
+        response.json({ Msg: 'Success', token: `Bearer ${token}` });
+      } else {
+        console.log(err);
+        response.status(400).json(err);
+      }
+    });
   } catch (error) {
-    return res.status(400).json(error);
+    return response.status(400).json(error);
   }
 });
 
+const addBorrow =
+  'INSERT INTO borrow(user_id, ISBN, date_checked_out, date_due) VALUES (?, ?, ?, ?)';
+const getUserByID = 'SELECT * FROM user WHERE user_id = ?';
+const updateCredits = 'UPDATE user SET rental_credits = ? WHERE user_id = ?';
+const getCurrBorrowed = 'SELECT * FROM book, borrow WHERE user_id = ? AND book.ISBN = borrow.ISBN';
+
+app.post(
+  '/api/useractions/borrow',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const { userId, isbn } = req.body;
+    var credits = 0;
+    var currDate = new Date();
+    var dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
+    try {
+      mysqlConnection.query(getUserByID, userId, (err, rows, fields) => {
+        if (!err) {
+          credits = rows[0].rental_credits;
+          if (credits > 0) {
+            credits = credits - 1;
+            mysqlConnection.query(
+              addBorrow,
+              [userId, isbn, currDate, dueDate],
+              (err, rows, fields) => {
+                if (!err) {
+                  mysqlConnection.query(updateCredits, [credits, userId], (err, rows, fields) => {
+                    if (!err) {
+                      mysqlConnection.query(getCurrBorrowed, userId, (err, rows, fields) => {
+                        if (!err) {
+                          res.status(200).json(rows);
+                        } else {
+                          console.log(err);
+                          res.status(400).json(err);
+                        }
+                      });
+                    } else {
+                      console.log(err);
+                      res.status(400).json(err);
+                    }
+                  });
+                } else {
+                  console.log(err);
+                  res.status(400).json(err);
+                }
+              }
+            );
+          }
+        } else {
+          console.log(err);
+          res.status(400).json(err);
+        }
+      });
+      console.log(credits);
+    } catch (error) {
+      console.error(error);
+    }
+    // add checkout date
+    // add due date 2 weeks from now
+    // save book and userId under renters table
+    // update user credits in user table
+    // send back list of books checked out by current user
+  }
+);
+
+const removeRental = 'DELETE FROM borrow WHERE user_id = ? AND ISBN = ?';
+
+app.post(
+  '/api/useractions/return',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const { userId, isbn } = req.body;
+    // remove book from renters table
+    // update user credits in user table
+    var credits = 0;
+    try {
+      mysqlConnection.query(getUserByID, userId, (err, rows, fields) => {
+        if (!err) {
+          credits = rows[0].rental_credits;
+          if (credits > 0) {
+            credits = credits + 1;
+            mysqlConnection.query(removeRental, [userId, isbn], (err, rows, fields) => {
+              if (!err) {
+                mysqlConnection.query(updateCredits, [credits, userId], (err, rows, fields) => {
+                  if (!err) {
+                    mysqlConnection.query(getCurrBorrowed, userId, (err, rows, fields) => {
+                      if (!err) {
+                        res.status(200).json(rows);
+                      } else {
+                        console.log(err);
+                        res.status(400).json(err);
+                      }
+                    });
+                  } else {
+                    console.log(err);
+                    res.status(400).json(err);
+                  }
+                });
+              } else {
+                console.log(err);
+                res.status(400).json(err);
+              }
+            });
+          }
+        } else {
+          console.log(err);
+          res.status(400).json(err);
+        }
+      });
+      console.log(credits);
+    } catch (error) {
+      console.error(error);
+    }
+    // send back list of books still checked out by current user
+  }
+);
+
+app.get('/api/userinfo/books', passport.authenticate('jwt', { session: false }), (req, res) => {
+  const { user_id } = req.user;
+  // find all books checked out by this user
+  // send back book information and checkout date and due date
+  try {
+    mysqlConnection.query(getCurrBorrowed, user_id, (err, rows, fields) => {
+      if (!err) {
+        res.status(200).json(rows);
+      } else {
+        console.log(err);
+        res.status(400).json(err);
+      }
+    });
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+app.get('/api/userinfo/credits', passport.authenticate('jwt', { session: false }), (req, res) => {
+  const { user_id } = req.user;
+  // send back the number of credits this user has
+  try {
+    mysqlConnection.query(getUserByID, user_id, (err, rows, fields) => {
+      if (!err) {
+        res.status(200).json(rows);
+      } else {
+        console.log(err);
+        res.status(400).json(err);
+      }
+    });
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+const addToCart = 'INSERT INTO cart(user_id, ISBN) VALUES (?, ?)';
+const getCartByUser = 'SELECT * FROM cart WHERE user_id = ?';
+
+app.post('/api/useractions/cart', passport.authenticate('jwt', { session: false }), (req, res) => {
+  const { userId, isbn } = req.body;
+  // save record to cart table
+  // send back the new cart
+  try {
+    mysqlConnection.query(addToCart, [userId, isbn], (err, rows, fields) => {
+      if (!err) {
+        mysqlConnection.query(getCartByUser, userId, (err, rows, fields) => {
+          if (!err) {
+            res.status(200).json(rows);
+          } else {
+            console.log(err);
+            res.status(400).json(err);
+          }
+        });
+      } else {
+        console.log(err);
+        res.status(400).json(err);
+      }
+    });
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+const removeFromCart = 'DELETE FROM cart WHERE user_id = ? AND ISBN = ?';
+
+app.post(
+  '/api/useractions/cart/remove',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const { userId, isbn } = req.body;
+    // remove book from cart table
+    // send back the new cart
+    try {
+      mysqlConnection.query(removeFromCart, [userId, isbn], (err, rows, fields) => {
+        if (!err) {
+          mysqlConnection.query(getCartByUser, userId, (err, rows, fields) => {
+            if (!err) {
+              res.status(200).json(rows);
+            } else {
+              console.log(err);
+              res.status(400).json(err);
+            }
+          });
+        } else {
+          console.log(err);
+          res.status(400).json(err);
+        }
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+);
+
+app.get('/api/userinfo/cart', passport.authenticate('jwt', { session: false }), (req, res) => {
+  const { user_id } = req.user;
+  // send back all books in user cart
+  mysqlConnection.query(getCartByUser, user_id, (err, rows, fields) => {
+    if (!err) {
+      res.status(200).json(rows);
+    } else {
+      console.log(err);
+      res.status(400).json(err);
+    }
+  });
+});
+
+// ------------------------ Not sure if we need this -----------------------------
 //View Cart/Place Order Page
 //not sure if I should be individually querying per given ISBN but we should
 //query with book.book_id = ANY(id array from cart)
