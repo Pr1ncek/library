@@ -24,6 +24,7 @@ export default class Book extends Component {
   };
 
   componentDidMount() {
+    window.scrollTo(0, 0);
     Axios.get(`/books/individual/${this.props.match.params.isbn}`)
       .then(res => {
         console.log(res.data[0]);

@@ -401,20 +401,15 @@ app.post(
 
 app.get('/api/userinfo/books', passport.authenticate('jwt', { session: false }), (req, res) => {
   const { user_id } = req.user;
-  // find all books checked out by this user
-  // send back book information and checkout date and due date
-  try {
-    mysqlConnection.query(getCurrBorrowed, user_id, (err, rows, fields) => {
-      if (!err) {
-        res.status(200).json(rows);
-      } else {
-        console.log(err);
-        res.status(400).json(err);
-      }
-    });
-  } catch (err) {
-    console.error(err);
-  }
+
+  mysqlConnection.query(getCurrBorrowed, user_id, (err, rows, fields) => {
+    if (!err) {
+      res.status(200).json(rows);
+    } else {
+      console.log(err);
+      res.status(400).json(err);
+    }
+  });
 });
 
 app.get('/api/userinfo/credits', passport.authenticate('jwt', { session: false }), (req, res) => {

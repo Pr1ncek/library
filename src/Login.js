@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Navbar from './Navbar';
 import Axios from 'axios';
 import setAuthToken from './utils/set-auth-token';
 import jwt_decode from 'jwt-decode';
@@ -13,6 +12,7 @@ class Login extends Component {
   handleSubmit = event => {
     event.preventDefault();
     const { email, password } = this.state;
+    
     Axios.post('/api/auth/login', { email, password })
       .then(res => {
         console.log(res);
