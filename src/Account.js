@@ -42,6 +42,7 @@ export default class Account extends Component {
       .catch(err => console.error(err));
   };
 
+
   returnBook = isbn => {
     console.log('here');
     console.log(isbn);
@@ -63,7 +64,7 @@ export default class Account extends Component {
 
     if (books.length !== 0)
       booksRented = books.map(book => (
-        <div className="row mb-5 ml-5 mr-5" key={book.isbn}>
+        <div className="row mb-5 ml-2 mr-5" key={book.isbn}>
           <div className="col-3">
             <img
               src={book.image_url}

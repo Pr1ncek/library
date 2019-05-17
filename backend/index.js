@@ -215,6 +215,26 @@ app.get('/books/top25/other', (req, res) => {
   });
 });
 
+const searchBooks =
+  'SELECT * FROM ((book INNER JOIN writes ON book.isbn = writes.ISBN)  INNER JOIN author ON writes.author_id = author.author_id) WHERE (full_name LIKE ?) OR (title LIKE ?) OR (book.ISBN LIKE ?) ORDER BY average_rating DESC LIMIT 25;';
+// Get top 25 *other* undefined genre books from DB
+app.post('/api/books/search', (req, res) => {
+  const { searchTerm } = req.body;
+  let newSearchTerm = '%' + searchTerm + '%';
+  mysqlConnection.query(
+    searchBooks,
+    [newSearchTerm, newSearchTerm, newSearchTerm],
+    (err, rows, fields) => {
+      if (!err) {
+        res.status(200).json(rows);
+      } else {
+        console.log(err);
+        res.status(400).json(err);
+      }
+    }
+  );
+});
+
 //View Book Page (currently no prices, delete comment later)
 //add to cart is front end stored and executed operations
 //publisher id for a route to search books by publisher, maybe shows address

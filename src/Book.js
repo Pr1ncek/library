@@ -34,6 +34,7 @@ export default class Book extends Component {
   }
 
   addToCart = () => {
+    if (!this.props.isAuthenticated) this.props.history.push('/login');
     Axios.post('/api/useractions/cart', { isbn: this.state.book.isbn })
       .then(res => {
         console.log(res.data[0]);

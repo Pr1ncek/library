@@ -8,6 +8,7 @@ export default class Checkout extends Component {
   };
 
   componentDidMount() {
+    if (!this.props.isAuthenticated) this.props.history.push('/login');
     Axios.get(`/books/individual/${this.props.match.params.isbn}`)
       .then(res => {
         console.log(res.data[0]);

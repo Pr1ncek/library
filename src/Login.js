@@ -12,7 +12,7 @@ class Login extends Component {
   handleSubmit = event => {
     event.preventDefault();
     const { email, password } = this.state;
-    
+
     Axios.post('/api/auth/login', { email, password })
       .then(res => {
         console.log(res);
@@ -58,7 +58,7 @@ class Login extends Component {
                     onChange={this.handleChange}
                   />
                 </div>
-                <input type="submit" className="btn btn-primary btn-block mt-4" />
+                <input type="submit" className="btn btn-success btn-block mt-4" />
               </form>
             </div>
           </div>

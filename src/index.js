@@ -13,6 +13,7 @@ import Checkout from './Checkout';
 import Cart from './Cart';
 import Account from './Account';
 import Navbar from './Navbar';
+import Search from './Search';
 
 const checkAuthenticationStatus = () => {
   // check for token
@@ -61,6 +62,14 @@ class Root extends React.Component {
           <Route path="/" component={App} exact />
 
           <Route
+            path="/search"
+            render={props => (
+              <Search {...props} currentUser={currentUser} isAuthenticated={isAuthenticated} />
+            )}
+            exact
+          />
+
+          <Route
             path="/account"
             render={props => (
               <Account {...props} currentUser={currentUser} isAuthenticated={isAuthenticated} />
@@ -86,9 +95,17 @@ class Root extends React.Component {
             exact
           />
 
-          <Route path="/book/:isbn" component={Book} exact />
+          <Route
+            path="/book/:isbn"
+            render={props => <Book {...props} isAuthenticated={isAuthenticated} />}
+            exact
+          />
 
-          <Route path="/book/checkout/:isbn" component={Checkout} exact />
+          <Route
+            path="/book/checkout/:isbn"
+            render={props => <Checkout {...props} isAuthenticated={isAuthenticated} />}
+            exact
+          />
 
           <Route path="/cart" render={routeProps => <Cart {...routeProps} />} exact />
         </Switch>

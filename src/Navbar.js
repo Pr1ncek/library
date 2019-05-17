@@ -5,7 +5,10 @@ export default class Navbar extends Component {
   render() {
     const guestLinks = (
       <div className="d-flex flex-row" role="group" aria-label="Basic example">
-        <Link to="/login" className="btn btn-primary mr-2  pl-4 pr-4">
+        <Link to="/search" className="btn btn-secondary mr-2  pl-5 pr-5">
+          Search
+        </Link>
+        <Link to="/login" className="btn btn-success mr-2  pl-4 pr-4">
           Login
         </Link>
         <Link to="/register" className="btn btn-danger mr-3 pl-4 pr-4">
@@ -23,8 +26,10 @@ export default class Navbar extends Component {
         >
           {this.props.isAuthenticated && this.props.currentUser.firstName}
         </Link>
-
-        <Link to="/cart" className="btn btn-secondary mr-2  pl-4 pr-4">
+        <Link to="/search" className="btn btn-secondary  mr-2 pl-5 pr-5">
+          Search
+        </Link>
+        <Link to="/cart" className="btn btn-success mr-2  pl-4 pr-4">
           View Cart
         </Link>
 
